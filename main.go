@@ -14,13 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package hexes
+package main
 
-func cube_subtract(a, b Cube) Cube {
-	return Cube{Q: a.Q - b.Q, R: a.R - b.R, S: a.S - b.S}
-}
+import (
+	"github.com/mdhender/medoly/cmd"
+	"log"
+	"math/rand"
+	"os"
+	"time"
+)
 
-func cube_distance(a, b Cube) int {
-	var vec = cube_subtract(a, b)
-	return (abs(vec.Q) + abs(vec.R) + abs(vec.S)) / 2
+func main() {
+	started := time.Now()
+	rand.Seed(started.UnixNano())
+
+	rv := 0
+	if err := cmd.Execute(); err != nil {
+		log.Printf("\n%+v\n", err)
+		rv = 2
+	}
+
+	log.Printf("completed in %v\n", time.Now().Sub(started))
+
+	os.Exit(rv)
 }

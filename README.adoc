@@ -1,0 +1,20 @@
+= Medoly
+Michael D Henderson <author@asciidoctor.org>
+0.0, December 3, 2022: Medoly Manual
+:toc:
+:icons: font
+
+Medoly is based on several better games.
+
+== The Map
+
+Medoly uses a hexagonal grid with a radius of 99 hexes.
+Almost all the edge hexes wrap.
+
+=== Directions
+Medoly uses "W," "E," "D," "X," "Z," and "A" for directions.
+"W" moves north-west, "E" moves north-east, "D" moves east, "X" moves south-east, "Z" moves south-west, and "A" moves west.
+
+The easiest way to remember this (that is if you have a QWERTY keyboard) is that the letters surround the "S" key and correspond to one of the hex sides.
+
+=== Coordinates

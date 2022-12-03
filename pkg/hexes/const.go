@@ -1,4 +1,4 @@
-// medokh - a clone of a much better game
+// medoly - a clone of much better games
 // Copyright (c) 2022 Michael D Henderson
 //
 // This program is free software: you can redistribute it and/or modify
