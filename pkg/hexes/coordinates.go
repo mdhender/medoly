@@ -16,43 +16,11 @@
 
 package hexes
 
-// Cube coordinates have three axes, q, r, and s
-// and the constraint that q + r + s = 0.
-type Cube struct {
-	Q int `json:"q"`
-	R int `json:"r"`
-	S int `json:"s"`
-}
-
-// Axial coordinates are like Cube, but they don't store s.
-// We can recover s since s = -q - r.
-type Axial struct {
-	Q int `json:"q"`
-	R int `json:"r"`
-}
-
-// Offset coordinates use col and row.
-// In an "odd" layout, odd rows are shoved to the right or down.
-// In an "even" layout, even rows are shoved to the right or down.
-// Which depends on if the layout is horizontal or vertical.
-// The "horizontal" layout shoves rows to the right,
-// while the "vertical" layout shoves them down.
-type Offset struct {
-	Q int `json:"q"` // colum
-	R int `json:"r"` // row
-}
-
 // Doubled coordinates use col and row.
 // They have the constraint that (col + row) % 2 = 0.
 type Doubled struct {
 	Q int `json:"q"` // colum
 	R int `json:"r"` // row
-}
-
-func cube_to_axial(c Cube) Axial {
-	var q = c.Q
-	var r = c.R
-	return Axial{Q: q, R: r}
 }
 
 func axial_to_cube(a Axial) Cube {
@@ -110,22 +78,10 @@ func evenq_to_axial(o Offset) Axial {
 	return Axial{Q: q, R: r}
 }
 
-func cube_to_oddr(c Cube) Offset {
-	var col = c.Q + (c.R-(c.R&1))/2
-	var row = c.R
-	return Offset{Q: col, R: row}
-}
-
 func oddr_to_cube(o Offset) Cube {
 	var q = o.Q - (o.R-(o.R&1))/2
 	var r = o.R
 	return Cube{Q: q, R: r, S: -q - r}
-}
-
-func cube_to_evenr(c Cube) Offset {
-	var col = c.Q + (c.R+(c.R&1))/2
-	var row = c.R
-	return Offset{Q: col, R: row}
 }
 
 func evenr_to_cube(o Offset) Cube {
@@ -134,22 +90,16 @@ func evenr_to_cube(o Offset) Cube {
 	return Cube{Q: q, R: r, S: -q - r}
 }
 
-func cube_to_oddq(c Cube) Offset {
-	var col = c.Q
-	var row = c.R + (c.Q-(c.Q&1))/2
-	return Offset{Q: col, R: row}
+func OddQToCube(col, row int) Cube {
+	var q = col
+	var r = row
+	return oddq_to_cube(Offset{Q: q, R: r})
 }
 
 func oddq_to_cube(o Offset) Cube {
 	var q = o.Q
 	var r = o.R - (o.Q-(o.Q&1))/2
 	return Cube{Q: q, R: r, S: -q - r}
-}
-
-func cube_to_evenq(c Cube) Offset {
-	var col = c.Q
-	var row = c.R + (c.Q+(c.Q&1))/2
-	return Offset{Q: col, R: row}
 }
 
 func evenq_to_cube(o Offset) Cube {
