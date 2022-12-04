@@ -27,7 +27,7 @@ import (
 const (
 	EDGE   = 20
 	EDGES  = EDGE * 2
-	RADIUS = 30
+	RADIUS = 10
 )
 
 type SVG struct {
@@ -45,21 +45,21 @@ type Hex struct {
 }
 
 func New(cols, rows int) *SVG {
-	offset := (math.Sqrt(3) * RADIUS) / 2
-	// cols -> width  -> x
-	maxX := EDGES + offset*float64(cols*2)
-	// rows -> height -> y
-	maxY := EDGES + offset*float64(rows)*math.Sqrt(3)
+	//offset := (math.Sqrt(3) * RADIUS) / 2
+	//// cols -> width  -> x
+	//maxX := EDGES + offset*float64(cols*2)
+	//// rows -> height -> y
+	//maxY := EDGES + offset*float64(rows)*math.Sqrt(3)
 
 	s := &SVG{
 		id:     "s",
 		width:  2.0 * RADIUS,
 		height: math.Sqrt(3.0) * RADIUS,
 		viewBox: viewBox{
-			minX:   0,
-			minY:   0,
-			width:  int(maxX),
-			height: int(maxY),
+			minX: 0,
+			minY: 0,
+			//width:  int(maxX),
+			//height: int(maxY),
 		},
 		//polygons: make(map[int]*polygon),
 	}
@@ -79,6 +79,12 @@ func (s *SVG) AddHex(x, y int, t terrain.Terrain) {
 	}
 	h := hexes.XYToHex(x, y)
 	poly.cx, poly.cy = s.layout.CenterPoint(h).Coords()
+	//if int(poly.cx) > s.viewBox.width {
+	//	s.viewBox.width = int(poly.cx + poly.radius)
+	//}
+	//if int(poly.cy) > s.viewBox.height {
+	//	s.viewBox.height = int(poly.cy + poly.radius)
+	//}
 
 	poly.style.stroke = "Grey"
 	poly.style.fill = t.ToFill()
@@ -89,16 +95,17 @@ func (s *SVG) AddHex(x, y int, t terrain.Terrain) {
 		}
 	}
 	poly.style.strokeWidth = "2px"
+	poly.style.strokeWidth = "1px"
 
 	for _, p := range s.layout.PolygonCorners(h) {
 		px, py := p.Coords()
-		if width := int(px); width+EDGES > s.viewBox.width {
-			s.viewBox.width = width + EDGES
-		}
-		if height := int(py); height+EDGES > s.viewBox.height {
-			s.viewBox.height = height + EDGES
-		}
 		poly.points = append(poly.points, point{x: px, y: py})
+		if int(px) > s.viewBox.width {
+			s.viewBox.width = int(px)
+		}
+		if int(py) > s.viewBox.height {
+			s.viewBox.height = int(py)
+		}
 	}
 
 	s.polygons = append(s.polygons, poly)
@@ -110,21 +117,34 @@ func (s *SVG) Bytes() []byte {
 	if s.id != "" {
 		buf.WriteString(fmt.Sprintf(" id=%q", s.id))
 	}
-	buf.WriteString(fmt.Sprintf(` width="%d" height="%d"`, s.viewBox.width+EDGES, s.viewBox.height+EDGES))
+	//buf.WriteString(fmt.Sprintf(` width="%dpx" height="%dpx"`, s.viewBox.width, s.viewBox.height))
 	buf.Write(s.viewBox.Bytes())
-	buf.Write([]byte(` xmlns="http://www.w3.org/2000/svg">`))
+	buf.Write([]byte(` xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`))
 	buf.WriteByte('\n')
-	buf.WriteString(fmt.Sprintf(`<rect height="%d" width="%d" style="fill: Grey; stroke: Black; stroke-width: 2px;" />`,
-		s.viewBox.height, s.viewBox.width))
-	buf.WriteByte('\n')
-	buf.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" height="%d" width="%d" style="fill: %s; stroke: %s; stroke-width: 2px;" />`,
-		EDGE, EDGE, s.viewBox.height-EDGES, s.viewBox.width-EDGES, terrain.Ocean.ToFill(), terrain.Ocean.ToFill()))
-	buf.WriteByte('\n')
+	buf.WriteString("<style>@import url(medoly.css);</style>\n")
+	//buf.WriteString(`   <circle id="myCircle" cx="200" cy="200" r="4" stroke="blue" />`)
+	//buf.WriteByte('\n')
+	//buf.WriteString(`<rect height="100%" width="100%" style="fill: Grey; stroke: Black; stroke-width: 2px;" />`)
+	//buf.WriteString(`<rect height="100%" width="100%" fill=grey stroke="blue" />`)
+	//buf.WriteByte('\n')
 
-	for _, poly := range s.polygons {
-		//log.Printf("poyl y %3d x %3d\n", poly.y, poly.x)
-		buf.Write(poly.Bytes())
-		buf.WriteByte('\n')
+	for i, t := range []terrain.Terrain{terrain.Clear, terrain.Delta, terrain.Desert, terrain.Forest, terrain.Gravel, terrain.Ice, terrain.Mountain, terrain.Ocean, terrain.Plain, terrain.Rock, terrain.Rough, terrain.SaltMarsh, terrain.Sea, terrain.Steppe, terrain.Swamp} {
+		if i > 0 {
+			buf.WriteByte('\n')
+		}
+		var ref *polygon
+		id := t.String()
+		for _, poly := range s.polygons {
+			if poly.terrain != t {
+				continue
+			}
+			if ref == nil {
+				ref = poly
+				buf.Write(poly.Bytes(id))
+			} else {
+				buf.Write(poly.Use(ref, id))
+			}
+		}
 	}
 
 	buf.Write([]byte("</svg>"))
@@ -146,5 +166,5 @@ type viewBox struct {
 }
 
 func (v viewBox) Bytes() []byte {
-	return []byte(fmt.Sprintf(` viewBox="%d %d %d %d"`, v.minX, v.minY, v.width+EDGES, v.height+EDGES))
+	return []byte(fmt.Sprintf(` viewBox="%d %d %d %d"`, v.minX, v.minY, v.width+EDGE/2, v.height+EDGE/2))
 }

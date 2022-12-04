@@ -17,6 +17,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/mdhender/medoly/pkg/board"
 	"github.com/mdhender/medoly/pkg/terrain"
@@ -31,6 +32,9 @@ var cmdMap = &cobra.Command{
 	Use:   "map",
 	Short: "map things",
 	Run: func(cmd *cobra.Command, args []string) {
+		cols, rows := argsMap.cols, argsMap.rows
+		log.Printf("map: generating %4d x %4d map\n", cols, rows)
+
 		mc, err := terrain.LoadCorpus("corpus.json")
 		if err != nil {
 			log.Fatal(err)
@@ -39,7 +43,6 @@ var cmdMap = &cobra.Command{
 			log.Fatal(fmt.Errorf("assert(mc != nil)"))
 		}
 
-		cols, rows := argsMap.cols, argsMap.rows
 		b := board.New(cols, rows)
 
 		// initialize the map
@@ -59,10 +62,21 @@ var cmdMap = &cobra.Command{
 			}
 		}
 
-		if err := os.WriteFile("medoly.svg", b.AsSVG(), 0666); err != nil {
+		svg := b.AsSVG()
+		//if err := os.WriteFile("medoly.svg", svg, 0666); err != nil {
+		//	log.Fatal(err)
+		//}
+		//log.Printf("created %q", "medoly.svg")
+		buf := &bytes.Buffer{}
+		buf.WriteString(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Medoly World Map</title></head><body>`)
+		buf.WriteByte('\n')
+		buf.Write(svg)
+		buf.WriteByte('\n')
+		buf.WriteString(`</body></html>`)
+		if err := os.WriteFile("medoly.html", buf.Bytes(), 0666); err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("created %q", "medoly.svg")
+		log.Printf("created %q", "medoly.html")
 	},
 }
 
@@ -74,6 +88,6 @@ var argsMap struct {
 func init() {
 	cmdRoot.AddCommand(cmdMap)
 
-	cmdMap.Flags().IntVar(&argsMap.rows, "rows", 200, "number of rows to generate")
-	cmdMap.Flags().IntVar(&argsMap.cols, "cols", 400, "number of columns to generate")
+	cmdMap.Flags().IntVar(&argsMap.cols, "cols", 40, "number of columns to generate")
+	cmdMap.Flags().IntVar(&argsMap.rows, "rows", 40, "number of rows to generate")
 }

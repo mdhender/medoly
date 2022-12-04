@@ -19,14 +19,13 @@ package main
 import (
 	"github.com/mdhender/medoly/cmd"
 	"log"
-	"math/rand"
 	"os"
 	"time"
 )
 
 func main() {
 	started := time.Now()
-	rand.Seed(started.UnixNano())
+	//rand.Seed(started.UnixNano())
 
 	rv := 0
 	if err := cmd.Execute(); err != nil {

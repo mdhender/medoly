@@ -40,17 +40,25 @@ type polygon struct {
 	text      []string
 }
 
-func (p *polygon) Bytes() []byte {
+func (p *polygon) Bytes(id string) []byte {
 	buf := bytes.Buffer{}
-	buf.WriteString(fmt.Sprintf(`<polygon style="fill: %s; stroke: %s; stroke-width: %s;"`, p.style.fill, p.style.stroke, p.style.strokeWidth))
+	//buf.WriteString(fmt.Sprintf(`<polygon style="fill: %s; stroke: %s; stroke-width: %s;"`, p.style.fill, p.style.stroke, p.style.strokeWidth))
+	buf.WriteString(`<polygon`)
+	if id != "" {
+		buf.WriteString(fmt.Sprintf(` id="%s"`, id))
+	}
+	buf.WriteString(fmt.Sprintf(` fill="%s"`, p.style.fill))
+	buf.WriteString(fmt.Sprintf(` stroke="%s"`, p.style.stroke))
+	buf.WriteString(fmt.Sprintf(` stroke-width="%s"`, p.style.strokeWidth))
 	buf.WriteString(fmt.Sprintf(` points="`))
+
 	for i, pt := range p.points {
 		if i > 0 {
 			buf.WriteByte(' ')
 		}
 		buf.Write(pt.Bytes())
 	}
-	buf.WriteString(`"></polygon>\n`)
+	buf.WriteString(`"></polygon>`)
 	buf.WriteByte('\n')
 
 	//fontSize := 14
@@ -58,3 +66,18 @@ func (p *polygon) Bytes() []byte {
 
 	return buf.Bytes()
 }
+
+func (p *polygon) Use(ref *polygon, id string) []byte {
+	buf := bytes.Buffer{}
+	dx := p.cx - ref.cx
+	dy := p.cy - ref.cy
+	buf.WriteString(fmt.Sprintf(`<use href="#%s" x="%f" y="%f" />`, id, dx, dy))
+	buf.WriteByte('\n')
+	return buf.Bytes()
+}
+
+/*
+   <circle id="myCircle" cx="200" cy="200" r="4" stroke="blue" />
+   <use href="#myCircle" x="10" fill="blue" />
+   <use href="#myCircle" x="20" fill="white" stroke="red" />
+*/

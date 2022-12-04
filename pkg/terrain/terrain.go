@@ -103,7 +103,7 @@ func (t Terrain) MarshalJSON() ([]byte, error) {
 	case Rough:
 		return []byte("rough"), nil
 	case SaltMarsh:
-		return []byte("saltMarsh"), nil
+		return []byte("salt-marsh"), nil
 	case Sea:
 		return []byte("sea"), nil
 	case Steppe:
@@ -148,7 +148,7 @@ func (t *Terrain) UnmarshalJSON(b []byte) error {
 	} else if bytes.Equal(b, []byte(`"rough"`)) {
 		*t = Rough
 		return nil
-	} else if bytes.Equal(b, []byte(`"saltMarsh"`)) {
+	} else if bytes.Equal(b, []byte(`"salt-marsh"`)) {
 		*t = SaltMarsh
 		return nil
 	} else if bytes.Equal(b, []byte(`"sea"`)) {
@@ -163,4 +163,40 @@ func (t *Terrain) UnmarshalJSON(b []byte) error {
 	}
 	*t = Clear
 	return fmt.Errorf("invalid terrain: %q", string(b))
+}
+
+func (t Terrain) String() string {
+	switch t {
+	case Clear:
+		return "clear"
+	case Delta:
+		return "delta"
+	case Desert:
+		return "desert"
+	case Forest:
+		return "forest"
+	case Gravel:
+		return "gravel"
+	case Ice:
+		return "ice"
+	case Mountain:
+		return "mountain"
+	case Ocean:
+		return "ocean"
+	case Plain:
+		return "plain"
+	case Rock:
+		return "rock"
+	case Rough:
+		return "rough"
+	case SaltMarsh:
+		return "salt-marsh"
+	case Sea:
+		return "sea"
+	case Steppe:
+		return "steppe"
+	case Swamp:
+		return "swamp"
+	}
+	return "clear"
 }
