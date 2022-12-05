@@ -20,10 +20,10 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/mdhender/medoly/pkg/board"
+	"github.com/mdhender/medoly/pkg/hexes"
 	"github.com/mdhender/medoly/pkg/terrain"
 	"github.com/spf13/cobra"
 	"log"
-	"math/rand"
 	"os"
 )
 
@@ -35,6 +35,10 @@ var cmdMap = &cobra.Command{
 		cols, rows := argsMap.cols, argsMap.rows
 		log.Printf("map: generating %4d x %4d map\n", cols, rows)
 
+		//if err := terrain.SampleCorpus("sample-corpus.json"); err != nil {
+		//	log.Fatal(err)
+		//}
+
 		mc, err := terrain.LoadCorpus("corpus.json")
 		if err != nil {
 			log.Fatal(err)
@@ -45,24 +49,63 @@ var cmdMap = &cobra.Command{
 
 		b := board.New(cols, rows)
 
-		// initialize the map
+		// seed the map
+		// northern and southern rows are impassable ice
+		for _, y := range []int{0, rows - 1} {
+			for x := 0; x < cols; x++ {
+				if b.IsSet(x, y) {
+					continue
+				}
+				b.SetTerrain(x, y, terrain.Ice)
+			}
+		}
+		// western and eastern columns are impassable oceans
+		for _, x := range []int{0, cols - 1} {
+			for y := 0; y < rows; y++ {
+				if b.IsSet(x, y) {
+					continue
+				}
+				b.SetTerrain(x, y, terrain.Ocean)
+			}
+		}
+		// center of the map is the mountain of the gods
+		mx, my := (cols+(cols&1))/2, (rows+(rows&1))/2
+		b.SetTerrain(mx, my, terrain.SacredMountain)
+		for _, dir := range []int{0, 1, 2, 3, 4, 5} {
+			x, y := hexes.Neighbor(mx, my, dir)
+			if b.IsSet(x, y) {
+				continue
+			}
+			b.SetTerrain(x, y, terrain.Mountain)
+		}
+		// randomize the remainder of the map
 		for y := 0; y < rows; y++ {
 			for x := 0; x < cols; x++ {
-				// northern and southern rows are impassable ice
-				if y == 0 || y == rows-1 {
-					b.SetTerrain(x, y, terrain.Ice)
+				if b.IsSet(x, y) {
 					continue
 				}
-				// center of the map is the mountain of the gods
-				if x == cols/2 && y == rows/2 {
-					b.SetTerrain(x, y, terrain.Mountain)
-					continue
+				var t1, t2 terrain.Terrain
+				for dir := 0; dir < 6; dir++ {
+					if nx, ny := hexes.Neighbor(x, y, dir); b.IsSet(nx, ny) {
+						if t1 == terrain.Clear {
+							t1 = b.GetTerrain(nx, ny)
+						} else if t2 == terrain.Clear {
+							t2 = b.GetTerrain(nx, ny)
+							break
+						}
+					}
 				}
-				b.SetTerrain(x, y, mc.Next(terrain.Clear, terrain.Terrain(rand.Intn(int(terrain.Swamp)))))
+				if t1 == terrain.Clear {
+					t1 = terrain.Rock
+				}
+				if t2 == terrain.Clear {
+					t2 = terrain.Rough
+				}
+				b.SetTerrain(x, y, mc.Next(t1, t2))
 			}
 		}
 
-		svg := b.AsSVG()
+		svg := b.AsSVG(argsMap.addCoordinates)
 		//if err := os.WriteFile("medoly.svg", svg, 0666); err != nil {
 		//	log.Fatal(err)
 		//}
@@ -81,8 +124,9 @@ var cmdMap = &cobra.Command{
 }
 
 var argsMap struct {
-	rows int
-	cols int
+	rows           int
+	cols           int
+	addCoordinates bool
 }
 
 func init() {
@@ -90,4 +134,5 @@ func init() {
 
 	cmdMap.Flags().IntVar(&argsMap.cols, "cols", 40, "number of columns to generate")
 	cmdMap.Flags().IntVar(&argsMap.rows, "rows", 40, "number of rows to generate")
+	cmdMap.Flags().BoolVar(&argsMap.addCoordinates, "add-coordinates", false, "add coordinates to the map")
 }

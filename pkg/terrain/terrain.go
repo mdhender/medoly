@@ -35,6 +35,7 @@ const (
 	Plain
 	Rock
 	Rough
+	SacredMountain
 	SaltMarsh
 	Sea
 	Steppe
@@ -42,38 +43,57 @@ const (
 )
 
 // ToFill returns the background fill for a terrain type.
+/*
+#Delta {color: darkolivegreen; }
+#Desert {color: khaki ;}
+#Forest {color: forestgreen ;}
+#Gravel {color: darkgray ;}
+#Ice {color: whitesmoke ;}
+#Mountain {color: sienna ;}
+#Ocean {color: deepskyblue ;}
+#Plain {color: wheat ;}
+#Rock {color: gainsboro ;}
+#Rough {color: lightgray ;}
+#SacredMountain {color: gold ;}
+#SaltMarsh {color: yellowgreen ;}
+#Sea {color: lightblue ;}
+#Steppe {color: linen ;}
+#Swamp {color: mediumseagreen ;}
+*/
 func (t Terrain) ToFill() string {
 	switch t {
 	case Clear:
 		return "hsl(53, 100%, 94%)"
 	case Delta:
-		return "hsl(74, 48%, 76%)"
+		return "darkolivegreen"
 	case Desert:
-		return "hsl(48, 81%, 66%)"
+		return "khaki"
 	case Forest:
-		return "hsl(85, 56%, 71%)"
+		return "forestgreen"
 	case Gravel:
-		return "hsl(49, 79%, 89%)"
+		return "darkgray"
 	case Ice:
-		return "White"
+		return "black" // "whitesmoke"
 	case Mountain:
-		return "hsl(47, 40%, 63%)"
+		return "chocolate"
 	case Ocean:
-		return "LightBlue"
+		return "deepskyblue" //"hsl(197, 78%, 85%)"
 	case Plain:
-		return "hsl(85, 26%, 31%)"
+		return "wheat"
 	case Rock:
-		return "hsl(49, 79%, 89%)"
+		return "gainsboro"
 	case Rough:
-		return "hsl(49, 79%, 89%)"
+		return "lightgray"
+	case SacredMountain:
+		return "gold"
 	case SaltMarsh:
-		return "hsl(65, 85%, 90%)"
+		return "yellowgreen"
 	case Sea:
-		return "hsl(197, 78%, 85%)"
+		return "lightblue"
 	case Steppe:
-		return "hsl(43, 43%, 77%)"
+		return "linen"
 	case Swamp:
-		return "hsl(68, 78%, 93%)"
+		return "mediumseagreen"
 	}
 	panic(fmt.Sprintf("assert(t != %d)", t))
 }
@@ -81,35 +101,37 @@ func (t Terrain) ToFill() string {
 func (t Terrain) MarshalJSON() ([]byte, error) {
 	switch t {
 	case Clear:
-		return []byte("clear"), nil
+		return []byte(`"clear"`), nil
 	case Delta:
-		return []byte("delta"), nil
+		return []byte(`"delta"`), nil
 	case Desert:
-		return []byte("desert"), nil
+		return []byte(`"desert"`), nil
 	case Forest:
-		return []byte("forest"), nil
+		return []byte(`"forest"`), nil
 	case Gravel:
-		return []byte("gravel"), nil
+		return []byte(`"gravel"`), nil
 	case Ice:
-		return []byte("ice"), nil
+		return []byte(`"ice"`), nil
 	case Mountain:
-		return []byte("mountain"), nil
+		return []byte(`"mountain"`), nil
 	case Ocean:
-		return []byte("ocean"), nil
+		return []byte(`"ocean"`), nil
 	case Plain:
-		return []byte("plain"), nil
+		return []byte(`"plain"`), nil
 	case Rock:
-		return []byte("rock"), nil
+		return []byte(`"rock"`), nil
 	case Rough:
-		return []byte("rough"), nil
+		return []byte(`"rough"`), nil
+	case SacredMountain:
+		return []byte(`"sacred-mountain"`), nil
 	case SaltMarsh:
-		return []byte("salt-marsh"), nil
+		return []byte(`"salt-marsh"`), nil
 	case Sea:
-		return []byte("sea"), nil
+		return []byte(`"sea"`), nil
 	case Steppe:
-		return []byte("steppe"), nil
+		return []byte(`"steppe"`), nil
 	case Swamp:
-		return []byte("swamp"), nil
+		return []byte(`"swamp"`), nil
 	}
 	return nil, fmt.Errorf("invalid value")
 }
@@ -147,6 +169,9 @@ func (t *Terrain) UnmarshalJSON(b []byte) error {
 		return nil
 	} else if bytes.Equal(b, []byte(`"rough"`)) {
 		*t = Rough
+		return nil
+	} else if bytes.Equal(b, []byte(`"sacred-mountain"`)) {
+		*t = SacredMountain
 		return nil
 	} else if bytes.Equal(b, []byte(`"salt-marsh"`)) {
 		*t = SaltMarsh
@@ -189,6 +214,8 @@ func (t Terrain) String() string {
 		return "rock"
 	case Rough:
 		return "rough"
+	case SacredMountain:
+		return "sacred-mountain"
 	case SaltMarsh:
 		return "salt-marsh"
 	case Sea:

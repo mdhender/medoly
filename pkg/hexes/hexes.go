@@ -29,6 +29,49 @@ func NewCoordinates(x, y int) Coordinates {
 	return Coordinates{q: x, r: y}
 }
 
+func Neighbor(x, y, direction int) (int, int) {
+	for direction < 0 {
+		direction += 6
+	}
+	for direction > 6 {
+		direction -= 6
+	}
+	var dy, dx int
+	switch x & 1 {
+	case 0: // col is even
+		switch direction {
+		case 0:
+			dx, dy = 0, -1
+		case 1:
+			dx, dy = 1, -1
+		case 2:
+			dx, dy = 1, 0
+		case 3:
+			dx, dy = 0, 1
+		case 4:
+			dx, dy = -1, 0
+		case 5:
+			dx, dy = -1, -1
+		}
+	case 1: // col is odd
+		switch direction {
+		case 0:
+			dx, dy = 0, -1
+		case 1:
+			dx, dy = 1, 0
+		case 2:
+			dx, dy = 1, 1
+		case 3:
+			dx, dy = 0, 1
+		case 4:
+			dx, dy = -1, 1
+		case 5:
+			dx, dy = -1, 0
+		}
+	}
+	return x + dx, y + dy
+}
+
 // XYToHex assumes
 func XYToHex(x, y int) Hex {
 	return QOffsetToCube(x, y, ODD)

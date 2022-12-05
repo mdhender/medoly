@@ -20,6 +20,7 @@ import (
 	"github.com/mdhender/medoly/pkg/hexes"
 	"github.com/mdhender/medoly/pkg/svg"
 	"github.com/mdhender/medoly/pkg/terrain"
+	"log"
 )
 
 const (
@@ -39,7 +40,8 @@ type hex struct {
 	terrain terrain.Terrain
 }
 
-func New(rows, cols int) *Board {
+func New(cols, rows int) *Board {
+	//log.Printf("board: cols %d rows %d\n", cols, rows)
 	b := &Board{
 		Cols:  cols,
 		Rows:  rows,
@@ -51,11 +53,11 @@ func New(rows, cols int) *Board {
 	return b
 }
 
-func (b *Board) AsSVG() []byte {
-	s := svg.New(b.Cols, b.Rows)
+func (b *Board) AsSVG(addCoordinates bool) []byte {
+	s := svg.New(b.Cols, b.Rows, addCoordinates)
 	for y := 0; y < len(b.hexes); y++ {
 		for x := 0; x < len(b.hexes[y]); x++ {
-			if b.hexes[y][x] != nil {
+			if b.IsSet(x, y) {
 				s.AddHex(x, y, b.hexes[y][x].terrain)
 			}
 		}
@@ -68,10 +70,20 @@ func (b *Board) Bounds() (minCol, minRow, maxCol, maxRow int) {
 	return 0, 0, b.Cols, b.Rows
 }
 
+func (b *Board) IsSet(x, y int) bool {
+	return b.hexes[y][x] != nil
+}
+
+func (b *Board) GetTerrain(x, y int) terrain.Terrain {
+	return b.hexes[y][x].terrain
+}
+
 func (b *Board) SetTerrain(x, y int, t terrain.Terrain) {
 	if !(0 <= x && x < b.Cols) {
+		log.Printf("bad: %s: x: 0 <= %d < %d\n", t.String(), x, b.Cols)
 		return
 	} else if !(0 <= y && y < b.Rows) {
+		log.Printf("bad: %s: y: 0 <= %d < %d\n", t.String(), y, b.Rows)
 		return
 	}
 	if b.hexes[y][x] == nil {

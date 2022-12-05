@@ -44,7 +44,9 @@ type Hex struct {
 	terrain terrain.Terrain
 }
 
-func New(cols, rows int) *SVG {
+func New(cols, rows int, ac bool) *SVG {
+	addCoordinates = ac
+
 	//offset := (math.Sqrt(3) * RADIUS) / 2
 	//// cols -> width  -> x
 	//maxX := EDGES + offset*float64(cols*2)
@@ -113,6 +115,7 @@ func (s *SVG) AddHex(x, y int, t terrain.Terrain) {
 
 func (s *SVG) Bytes() []byte {
 	buf := bytes.Buffer{}
+
 	buf.WriteString("<svg")
 	if s.id != "" {
 		buf.WriteString(fmt.Sprintf(" id=%q", s.id))
@@ -121,14 +124,27 @@ func (s *SVG) Bytes() []byte {
 	buf.Write(s.viewBox.Bytes())
 	buf.Write([]byte(` xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`))
 	buf.WriteByte('\n')
-	buf.WriteString("<style>@import url(medoly.css);</style>\n")
-	//buf.WriteString(`   <circle id="myCircle" cx="200" cy="200" r="4" stroke="blue" />`)
-	//buf.WriteByte('\n')
-	//buf.WriteString(`<rect height="100%" width="100%" style="fill: Grey; stroke: Black; stroke-width: 2px;" />`)
-	//buf.WriteString(`<rect height="100%" width="100%" fill=grey stroke="blue" />`)
-	//buf.WriteByte('\n')
 
-	for i, t := range []terrain.Terrain{terrain.Clear, terrain.Delta, terrain.Desert, terrain.Forest, terrain.Gravel, terrain.Ice, terrain.Mountain, terrain.Ocean, terrain.Plain, terrain.Rock, terrain.Rough, terrain.SaltMarsh, terrain.Sea, terrain.Steppe, terrain.Swamp} {
+	buf.WriteString("<style>@import url(medoly.css);</style>\n")
+
+	for i, t := range []terrain.Terrain{
+		terrain.Clear,
+		terrain.Delta,
+		terrain.Desert,
+		terrain.Forest,
+		terrain.Gravel,
+		terrain.Ice,
+		terrain.Mountain,
+		terrain.Ocean,
+		terrain.Plain,
+		terrain.Rock,
+		terrain.Rough,
+		terrain.SacredMountain,
+		terrain.SaltMarsh,
+		terrain.Sea,
+		terrain.Steppe,
+		terrain.Swamp,
+	} {
 		if i > 0 {
 			buf.WriteByte('\n')
 		}

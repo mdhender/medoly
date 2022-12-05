@@ -22,6 +22,8 @@ import (
 	"github.com/mdhender/medoly/pkg/terrain"
 )
 
+var addCoordinates = false
+
 // polygon is the actual hex on the board
 type polygon struct {
 	x, y    int
@@ -61,8 +63,11 @@ func (p *polygon) Bytes(id string) []byte {
 	buf.WriteString(`"></polygon>`)
 	buf.WriteByte('\n')
 
-	//fontSize := 14
-	//s += fmt.Sprintf(`<text x="%f" y="%f" text-anchor="middle" fill="grey" font-size="%d" font-weight="bold">%s</text>`, p.cx, p.cy, fontSize, fmt.Sprintf("%02d%02d", p.x+1, p.y+1))
+	if addCoordinates {
+		fontSize := 8
+		buf.WriteString(fmt.Sprintf(`<text x="%f" y="%f" text-anchor="middle" fill="grey" font-size="%d" font-weight="bold">%s</text>`, p.cx, p.cy, fontSize, fmt.Sprintf("%02d %02d", p.x, p.y)))
+		buf.WriteByte('\n')
+	}
 
 	return buf.Bytes()
 }
@@ -73,6 +78,13 @@ func (p *polygon) Use(ref *polygon, id string) []byte {
 	dy := p.cy - ref.cy
 	buf.WriteString(fmt.Sprintf(`<use href="#%s" x="%f" y="%f" />`, id, dx, dy))
 	buf.WriteByte('\n')
+
+	if addCoordinates {
+		fontSize := 8
+		buf.WriteString(fmt.Sprintf(`<text x="%f" y="%f" text-anchor="middle" fill="grey" font-size="%d" font-weight="bold">%s</text>`, p.cx, p.cy, fontSize, fmt.Sprintf("%02d %02d", p.x, p.y)))
+		buf.WriteByte('\n')
+	}
+
 	return buf.Bytes()
 }
 
