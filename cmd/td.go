@@ -20,6 +20,7 @@ import (
 	"github.com/mdhender/medoly/pkg/td"
 	"github.com/spf13/cobra"
 	"log"
+	"math"
 	"net/http"
 	"sync"
 )
@@ -43,7 +44,10 @@ var cmdTD = &cobra.Command{
 			mu.Unlock()
 			log.Printf("shatter: %8d cycles\n", cycles)
 			w.Header().Set("Content-Type", "image/svg+xml")
-			_, _ = w.Write(td.Shatter(cycles))
+			_, _ = w.Write(td.Shatter(cycles, func(x, y float64) float64 {
+				r := math.Hypot(x, y) // distance from the origin
+				return math.Sin(r) / r
+			}))
 		})
 
 		if err := http.ListenAndServe(":3000", nil); err != nil {
