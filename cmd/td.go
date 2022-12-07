@@ -29,7 +29,7 @@ var cmdTD = &cobra.Command{
 	Use:   "td",
 	Short: "td things",
 	Run: func(cmd *cobra.Command, args []string) {
-		tdData := td.TD()
+		tdData := td.TD(nil)
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "image/svg+xml")
 			_, _ = w.Write(tdData)

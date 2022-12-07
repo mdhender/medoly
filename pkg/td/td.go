@@ -80,7 +80,11 @@ func Shatter(cycles int) []byte {
 	return buf.Bytes()
 }
 
-func TD() []byte {
+func TD(fn func(x, y float64) float64) []byte {
+	if fn == nil {
+		fn = f
+	}
+
 	buf := &bytes.Buffer{}
 
 	var coords [4][2]float64
@@ -91,34 +95,34 @@ func TD() []byte {
 		for j := 0; j < cells; j++ {
 			if x, y := corner(i+1, j); math.IsInf(x, 0) || math.IsNaN(x) || math.IsInf(y, 0) || math.IsNaN(y) {
 				continue
-			} else if z := f(x, y); math.IsInf(z, 0) || math.IsNaN(z) { // compute surface height z
+			} else if z := fn(x, y); math.IsInf(z, 0) || math.IsNaN(z) { // compute surface height z
 				continue
 			} else { // project (x,y,z) isometrically onto 2-D SVG canvas (sx, sy)
-				coords[0][0], coords[0][1] = width/2+(x-y)*cos30*xyscale, height/2+(x+y)*sin30*xyscale-z*zscale
+				coords[0][0], coords[0][1] = project(x, y, z)
 			}
 
 			if x, y := corner(i, j); math.IsInf(x, 0) || math.IsNaN(x) || math.IsInf(y, 0) || math.IsNaN(y) {
 				continue
-			} else if z := f(x, y); math.IsInf(z, 0) || math.IsNaN(z) { // compute surface height z
+			} else if z := fn(x, y); math.IsInf(z, 0) || math.IsNaN(z) { // compute surface height z
 				continue
 			} else { // project (x,y,z) isometrically onto 2-D SVG canvas (sx, sy)
-				coords[1][0], coords[1][1] = width/2+(x-y)*cos30*xyscale, height/2+(x+y)*sin30*xyscale-z*zscale
+				coords[1][0], coords[1][1] = project(x, y, z)
 			}
 
 			if x, y := corner(i, j+1); math.IsInf(x, 0) || math.IsNaN(x) || math.IsInf(y, 0) || math.IsNaN(y) {
 				continue
-			} else if z := f(x, y); math.IsInf(z, 0) || math.IsNaN(z) { // compute surface height z
+			} else if z := fn(x, y); math.IsInf(z, 0) || math.IsNaN(z) { // compute surface height z
 				continue
 			} else { // project (x,y,z) isometrically onto 2-D SVG canvas (sx, sy)
-				coords[2][0], coords[2][1] = width/2+(x-y)*cos30*xyscale, height/2+(x+y)*sin30*xyscale-z*zscale
+				coords[2][0], coords[2][1] = project(x, y, z)
 			}
 
 			if x, y := corner(i+1, j+1); math.IsInf(x, 0) || math.IsNaN(x) || math.IsInf(y, 0) || math.IsNaN(y) {
 				continue
-			} else if z := f(x, y); math.IsInf(z, 0) || math.IsNaN(z) { // compute surface height z
+			} else if z := fn(x, y); math.IsInf(z, 0) || math.IsNaN(z) { // compute surface height z
 				continue
 			} else { // project (x,y,z) isometrically onto 2-D SVG canvas (sx, sy)
-				coords[3][0], coords[3][1] = width/2+(x-y)*cos30*xyscale, height/2+(x+y)*sin30*xyscale-z*zscale
+				coords[3][0], coords[3][1] = project(x, y, z)
 			}
 
 			buf.WriteString("<polygon points='")
@@ -148,9 +152,8 @@ func f(x, y float64) float64 {
 	return math.Sin(r) / r
 }
 
+// project (x,y,z) isometrically onto 2-D SVG canvas (sx, sy)
 func project(x, y, z float64) (sx, sy float64) {
-	z *= 0.2
-	// project (x,y,z) isometrically onto 2-D SVG canvas (sx, sy)
 	sx = width/2 + (x-y)*cos30*xyscale
 	sy = height/2 + (x+y)*sin30*xyscale - z*zscale
 	return sx, sy
