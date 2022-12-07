@@ -84,8 +84,8 @@ var cmdMap = &cobra.Command{
 				if b.IsSet(x, y) {
 					continue
 				}
-				var t1, t2 terrain.Terrain
-				for dir := 0; dir < 6; dir++ {
+				t1, t2 := terrain.Clear, terrain.Clear
+				for dir := 5; dir >= 0; dir-- {
 					if nx, ny := hexes.Neighbor(x, y, dir); b.IsSet(nx, ny) {
 						if t1 == terrain.Clear {
 							t1 = b.GetTerrain(nx, ny)
@@ -96,20 +96,19 @@ var cmdMap = &cobra.Command{
 					}
 				}
 				if t1 == terrain.Clear {
-					t1 = terrain.Rock
-				}
-				if t2 == terrain.Clear {
-					t2 = terrain.Rough
+					t1, t2 = terrain.Plain, terrain.Plain
+				} else if t2 == terrain.Clear {
+					t2 = terrain.Plain
 				}
 				b.SetTerrain(x, y, mc.Next(t1, t2))
 			}
 		}
 
 		svg := b.AsSVG(argsMap.addCoordinates)
-		//if err := os.WriteFile("medoly.svg", svg, 0666); err != nil {
-		//	log.Fatal(err)
-		//}
-		//log.Printf("created %q", "medoly.svg")
+		if err := os.WriteFile("medoly.svg", svg, 0666); err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("created %q", "medoly.svg")
 		buf := &bytes.Buffer{}
 		buf.WriteString(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Medoly World Map</title></head><body>`)
 		buf.WriteByte('\n')
@@ -120,6 +119,7 @@ var cmdMap = &cobra.Command{
 			log.Fatal(err)
 		}
 		log.Printf("created %q", "medoly.html")
+
 	},
 }
 
