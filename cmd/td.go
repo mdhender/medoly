@@ -20,7 +20,7 @@ import (
 	"github.com/mdhender/medoly/pkg/td"
 	"github.com/spf13/cobra"
 	"log"
-	"math"
+	"math/rand"
 	"net/http"
 	"sync"
 )
@@ -38,15 +38,27 @@ var cmdTD = &cobra.Command{
 
 		var mu sync.Mutex
 		var cycles int
+		var land [][]float64
 		http.HandleFunc("/shatter", func(w http.ResponseWriter, r *http.Request) {
 			mu.Lock()
+			if land == nil {
+				land = make([][]float64, 102, 102)
+				for i := 0; i < len(land); i++ {
+					land[i] = make([]float64, 102, 102)
+				}
+			}
 			cycles++
+			whack := 100 / cycles
+			for i := 0; i < 102; i += whack {
+				for j := 0; j < 102; j += whack {
+					land[i][j] += float64(rand.Intn(10 - cycles))
+				}
+			}
 			mu.Unlock()
 			log.Printf("shatter: %8d cycles\n", cycles)
 			w.Header().Set("Content-Type", "image/svg+xml")
-			_, _ = w.Write(td.Shatter(cycles, func(x, y float64) float64 {
-				r := math.Hypot(x, y) // distance from the origin
-				return math.Sin(r) / r
+			_, _ = w.Write(td.Shatter(func(x, y int) float64 {
+				return land[x][y]
 			}))
 		})
 
@@ -61,4 +73,16 @@ var argsTD struct {
 
 func init() {
 	cmdRoot.AddCommand(cmdTD)
+}
+
+// https://lemire.me/blog/2022/12/06/fast-midpoint-between-two-integers-without-overflow/
+// smallest value no smaller than (x+y)/2
+func mids(x, y int) int {
+	return (x | y) - ((x ^ y) >> 1)
+}
+
+// https://lemire.me/blog/2022/12/06/fast-midpoint-between-two-integers-without-overflow/
+// largest value no larger than (x+y)/2
+func midl(x, y int) int {
+	return ((x ^ y) >> 1) + (x & y)
 }
